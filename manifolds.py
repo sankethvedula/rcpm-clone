@@ -125,12 +125,12 @@ class Sphere(Manifold):
 
     def zero(self):
         y = jnp.zeros(self.D)
-        y = jax.ops.index_update(y, jax.ops.index[..., 0], -1.)
+        y = y.at[..., 0].set(-1.)
         return y
 
     def zero_like(self, x):
         y = jnp.zeros_like(x)
-        y = jax.ops.index_update(y, jax.ops.index[..., 0], -1.)
+        y = y.at[..., 0].set(-1.)
         return y
 
     def squeeze_tangent(self, x):
@@ -192,7 +192,7 @@ def get(manifold):
         return Sphere(D = 2)
     elif manifold == 'S2':
         return Sphere(D = 3)
-    elif manifolds == 'R':
+    elif manifold == 'R':
         return Euclidean(D = 1)
     else:
         assert False

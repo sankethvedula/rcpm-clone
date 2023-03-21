@@ -8,9 +8,6 @@ from jax.scipy.special import logsumexp
 
 from flax import linen as nn
 
-import hydra
-import omegaconf
-
 from manifolds import Manifold, Sphere, Product
 import densities
 import utils
@@ -232,15 +229,11 @@ class MultiInfAffine(nn.Module):
 
 
 class ExpMapFlow(nn.Module):
-    potential_cfg: omegaconf.dictconfig.DictConfig
     manifold: Manifold
+    potential_: nn.Module
 
     def setup(self):
-        self.potential_mod = hydra.utils.instantiate(
-            self.potential_cfg,
-            manifold=self.manifold
-        )
-
+        self.potential_mod = self.potential_
 
     def __call__(self, xs, t = 1):
         assert xs.ndim == 2
@@ -288,20 +281,18 @@ class ExpMapFlow(nn.Module):
 class SequentialFlow(nn.Module):
     n_transforms: int
     manifold: Manifold
-    single_transform_cfg: omegaconf.dictconfig.DictConfig
+    single_transform: nn.Module
 
     def setup(self):
-        self.transforms = []
+        transforms = []
         for i in range(self.n_transforms):
-            mod = hydra.utils.instantiate(
-                self.single_transform_cfg,
-                manifold=self.manifold
-            )
-            self.transforms.append(mod)
+            mod = self.single_transform.clone()
+            transforms.append(mod)
 
             # hack for https://github.com/google/flax/issues/524
             key = f'transform{i:02d}'
             setattr(self, key, mod)
+        self.transforms = tuple(transforms)
 
     def __call__(self, orig_xs, debug=False, t = 1):
         ldjs = 0.

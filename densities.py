@@ -185,7 +185,8 @@ class LouSphereFourModes(Density):
         self.modes = []
         one = jnp.ones(3)
         oned = jnp.ones(3)
-        oned = jax.ops.index_update(oned, jax.ops.index[2], -1.)
+        # oned = jax.ops.index_update(oned, jax.ops.index[2], -1.)
+        oned = oned.at[2].set(-1.)
         locs = [one, -one, oned, -oned]
         locs = [self.manifold.projx(loc) for loc in locs]
         scale = jnp.full(self.manifold.D-1, .3)
